@@ -1,0 +1,113 @@
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------------
+ * --------------------------------------------------------------------------------------------------------------------------------------------------
+ *					GLOBAL VARIABLES DECLARATIONs  --- 
+ * ------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+    // TIME VARIABLES (Maintained by MQTT: "time/zone" topic)
+    float timeZone, dstOffset;
+     struct Dst {
+        time_t transitionTime;
+        int isDST;
+    } dst[3];
+    uint8_t dstIndex=0;
+
+
+	
+	
+/* --------------------------------------------------------------------------------------------------------------------------------------------------
+ * --------------------------------------------------------------------------------------------------------------------------------------------------
+ *					GLOBAL VARIABLE INITIALIZATION  --- run in setup()
+ * ------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+ for (int n=0; n<3; n++) {   // initialize the dst array
+        dst[n].transitionTime = std::numeric_limits<time_t>::max(); // initialize time fields to the maximum <time_t> value
+        dst[n].isDST = 0;
+    }
+
+
+
+	
+/* --------------------------------------------------------------------------------------------------------------------------------------------------
+ * --------------------------------------------------------------------------------------------------------------------------------------------------
+ *					PERFORM AUTOMATIC DST TRANSITIONS --- runs in loop()  
+ * ------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+    if (Time.now() > dst[dstIndex].transitionTime) {                                                    // if a DST transition has passed ...
+		for (dstIndex++; ((dstIndex < 3) && (Time.now() > dst[dstIndex].transitionTime)); dstIndex++); 	    // search for the correct setting
+		if (dstIndex = 2) dst[dstIndex].transitionTime = std::numeric_limits<time_t>::max();	
+        if (dst[dstIndex].isDST == 1) Time.beginDST(); else Time.endDST();                                  // and perform a DST transition
+    }
+
+
+
+	
+/* --------------------------------------------------------------------------------------------------------------------------------------------------
+ * --------------------------------------------------------------------------------------------------------------------------------------------------
+ *					MQTT CALLBACK FUNCTION and supporting JSON Parsing functions
+ * ------------------------------------------------------------------------------------------------------------------------------------------------*/
+ 
+
+// --------------------------------------------- Receive an MQTT Message
+// triggered when a message is received from the MQTT Broker
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+    if (strcmp(topic,"time/zone") == 0) {
+        if (json_get(timeZone,(char*)payload,"zone") != EXIT_SUCCESS) return;
+        if (json_get(dstOffset,(char*)payload,"DSTOffset") != EXIT_SUCCESS) return;
+        if (json_get(dst[0].isDST,(char*)payload,"isDST0") != EXIT_SUCCESS) return;
+        if (json_get(dst[0].transitionTime,(char*)payload,"trans0") != EXIT_SUCCESS) return;
+        if (json_get(dst[1].isDST,(char*)payload,"isDST1") != EXIT_SUCCESS) return;
+        if (json_get(dst[1].transitionTime,(char*)payload,"trans1") != EXIT_SUCCESS) return;
+        if (json_get(dst[2].isDST,(char*)payload,"isDST2") != EXIT_SUCCESS) return;
+        Time.zone(timeZone);                                            // set time zone
+        Time.setDSTOffset(dstOffset);                                   // set DST offset
+        if (dst[0].isDST == 1) Time.beginDST; else Time.endDST;    // enable/disable DST to January 1 setting
+        dstIndex = 0;
+        sprintf(tzInfo, Time.format(Time.now(), TIME_FORMAT_ISO8601_FULL));
+    }
+    return;
+}
+/* --------------------------------------------------------------------------------------------------------------------------------------- json_get()
+ * --------------------------------------------------------------------------------------------------------------------------------------------------
+ *                                      json_get functions extract data values from a JSON string
+ *
+ *                      Usage: json_get(<variableName>, <jsonString>, <jsonFieldName>)
+ *                          where:  <variableName> is the name of a variable where the 'JSON Field Value' will be stored
+ *                                  <jsonString> is the name of the buffer that contains the JSON string
+ *                                  <jsonFieldName> is the 'JSON Field Name' who's 'JSON Field Value' will be extracted
+ *                      Return value: EXIT_SUCCESS or EXIT_FAILURE
+ *                      Limitations: JSON strings must be packed ... whitespace is not tolerated
+ *                                   JSON nesting and arrays are not supported.
+ * --------------------------------------------------------------------------------------------------------------------------------------------------
+ * ------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+int json_get(float& n, char* jsonStr, char* name) { // extract a floating point value
+    char str[33] = "\"";
+    strncat(str,name,sizeof(str));
+    strncat(str,"\":",sizeof(str));
+    char* pch = strstr(jsonStr,str);
+    if (pch == NULL) return EXIT_FAILURE;
+    n = atof(pch+strlen(str));
+    return EXIT_SUCCESS;
+}
+
+int json_get(int& n, char* jsonStr, char* name) { // extract an integer value
+    char str[33] = "\"";
+    strncat(str,name,sizeof(str));
+    strncat(str,"\":",sizeof(str));
+    char* pch = strstr(jsonStr,str);
+    if (pch == NULL) return EXIT_FAILURE;
+    n = atoi(pch+strlen(str));
+    return EXIT_SUCCESS;
+}
+
+int json_get(time_t& n, char* jsonStr, char* name) { // extract a time_t or long value
+    char str[33] = "\"";
+    strncat(str,name,sizeof(str));
+    strncat(str,"\":",sizeof(str));
+    char* pch = strstr(jsonStr,str);
+    if (pch == NULL) return EXIT_FAILURE;
+    n = atol(pch+strlen(str));
+    return EXIT_SUCCESS;
+}
+
