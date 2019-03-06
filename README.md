@@ -19,5 +19,5 @@
 
 ## Status: PROTOTYPING
 ---
-03 Mar 2019 - Linux Script Prototype 1 uploaded
+03 Mar 2019 - Linux Script Prototype 1 uploaded (documentation included in code)
 
