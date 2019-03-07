@@ -35,7 +35,7 @@
 
     if (Time.now() > dst[dstIndex].transitionTime) {                                                    // if a DST transition has passed ...
 		for (dstIndex++; ((dstIndex < 3) && (Time.now() > dst[dstIndex].transitionTime)); dstIndex++); 	    // search for the correct setting
-		if (dstIndex = 2) dst[dstIndex].transitionTime = std::numeric_limits<time_t>::max();	
+		if (dstIndex == 2) dst[dstIndex].transitionTime = std::numeric_limits<time_t>::max();	
         if (dst[dstIndex].isDST == 1) Time.beginDST(); else Time.endDST();                                  // and perform a DST transition
     }
 
