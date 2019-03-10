@@ -32,6 +32,7 @@
 * 05 Mar 2019 - Prototype 1, Linux Code uploaded (documentation included in code)
 * 06 Mar 2019 - Prototype 1, MPU code snippets uploaded.
 * 07 Mar 2019 - Prototype 1, DST transition testing completed ... one minor fix posted to MPU snippets.
+* 10 Mar 2019 - Prototype 1, Local time was changed correctly on the second when the real DST transition occurred.
 #### Status:
 Prototype 1 proves that the concept is sound, and the code is relatively simple. The author is running this code on one of his Particle Xenon systems that already runs an MQTT client. Awaiting a March 10th DST transition ...
 
@@ -40,6 +41,7 @@ Prototype 1 proves that the concept is sound, and the code is relatively simple.
 * The Linux script used in Prototype 1 could be used to create data for any timezone, some timezones, or all timezones. 
 * The Linux script could also generate a different data format, or multiple data formats
 * If MPUs from other manufacturers need additional data, that data can be added to the existing data, or separate messages can be published based on the MPU manufacturer.
+
 
 
 
