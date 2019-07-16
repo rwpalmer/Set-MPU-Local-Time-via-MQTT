@@ -34,7 +34,7 @@
 * 07 Mar 2019 - Prototype 1, DST transition testing completed ... one minor fix posted to MPU snippets.
 * 10 Mar 2019 - Prototype 1, Local time was changed correctly on the second when the real DST transition occurred. Also ran validation tests to assure that the device's local time was set properly after reboots. 
 #### Status:
-Prototype 1 proves that the concept is sound, and the code is relatively simple. The author is running this code on one of his Particle Xenon systems that already runs an MQTT client. Awaiting a March 10th DST transition ...
+Prototype 1 proves that the concept is sound, and the code is relatively simple. The author is running this code on all of his devices that run with MQTT because it works so well and has very low overhead. The Linux script runs on the MQTT broker, and is kicked off via a cron on a selected date in early January each year. 
 
 ---
 ## Future Direction: TBD
